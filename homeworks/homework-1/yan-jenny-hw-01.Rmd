@@ -1,7 +1,10 @@
 ---
-title: 'Data Wrangling in \texttt{R}'
-author: "STA 325: Homework 1"
-output: pdf_document
+title: "Data Wrangling"
+author: 'STA 325: Homework 1'
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 ---
 
 Today's agenda: Manipulating data objects; using the built-in functions, doing numerical calculations, and basic plots; reinforcing core probabilistic ideas.
@@ -28,25 +31,27 @@ Reproducibility component: 10 points.
 
 a. Load the data set into R and make it a data frame called rain_df.  What command did you use?
 ```{r}
-#read rnf6080 into rain_df data frame
+#read rnf6080 into rain_df data frame using read.table command
 rain_df <- read.table("~/data-clean/homeworks/homework-1/data/rnf6080.dat")
 ```
 
 b. How many rows and columns does rain_df have?  How do you know?  (If there are not 5070 rows and 27 columns, you did something wrong in the first part of the problem.)
 ```{r}
-#store number of rows in to a variable named n_rows
-n_rows <- nrow(rain_df) 
-#store number of columns in to a variable named n_cols
-n_cols <- ncol(rain_df)   
+#store number of rows in to a variable named rows_num using nrow command
+rows_num <- nrow(rain_df) 
+#store number of columns in to a variable named cols_num using ncol command
+cols_num <- ncol(rain_df)   
 
 #print number of rows and columns
-print(n_rows)   
-print(n_cols)   
+#There are 5070 rows
+print(rows_num)   
+#There are 27 columns
+print(cols_num)   
 ```
 
 c. What command would you use to get the names of the columns of rain_df? What are those names?
 ```{r}
-# Get the column names of the data frame
+# Get the column names of the data frame using names command
 col_names <- names(rain_df)
 
 # Print column names
@@ -56,21 +61,23 @@ The names are V1 to V27.
 
 d. What command would you use to get the value at row 2, column 4? What is the value?
 ```{r}
-# Get the value at row 2, column 4
+# Fetch the value at row 2, column 4
 value <- rain_df[2, 4]
 
 # Print the value
+#The value is 0
 print(value)
 ```
 
 e. What command would you use to display the whole second row?  What is the content of that row?
 ```{r}
-# Display the whole second row
+# Store the second row into a varible named second_row
 second_row <- rain_df[2, ]
 
 # Print the second row
 print(second_row)
 ```
+Second row V1 is 60, second row V2 is 4, second row V3 is 2 while the rest of the row are 0.
 
 f.  What does the following command do?
 ```
@@ -81,7 +88,8 @@ The first three columns are renamed with "year", "month", and "day". The remaini
 g.  Create a new column called daily_rain_fall, which is the sum of the 24 hourly columns.
 
 ```{r}
-# Sum columns 4 through 27 (which is hour 0 to hour 23) and assign it to a new column called 'daily_rain_fall'
+# Sum columns 4 through 27 (which are hour 0 to hour 23) 
+#and assign it to a new column called 'daily_rain_fall'
 rain_df$daily_rain_fall <- rowSums(rain_df[, 4:27])
 ```
 
@@ -93,7 +101,6 @@ install.packages("ggplot2")
 # Load the ggplot2 library
 library(ggplot2)
 ```
-
 
 ```{r}
 # Create a histogram of the 'daily_rain_fall' column
@@ -111,7 +118,8 @@ Currently, there are negative values in the daily_rain_fall column, which is une
 
 j. Give the command you would use to fix the data frame.
 ```{r}
-#replace negative hourly rainfall with 0 (We will not use NA because NA values can't be added)
+#replace negative hourly rainfall with 0 
+#(We will not use NA because NA values can't be added)
 rain_df[, 4:27][rain_df[, 4:27] < 0] <- 0
 #update daily rainfall with correct hourly rainfall
 rain_df$daily_rain_fall <- rowSums(rain_df[, 4:27])
@@ -144,7 +152,10 @@ max(x)
 sort(x)
 sum(x)
 ```
-We would expect the following outcomes for numerical data: the maximum value being 12, the sorted output being 5, 7, 12, and the sum being 24. However, since 5, 12, and 7 are treated as character data types, the results differ. In lexicographical order, the maximum value is 7, as it's the highest when compared as strings. Sorting the values lexicographically yields 12, 5, and 7, and calculating the sum is not feasible with character data types.
+The first line creates a vector named x with character values of "5","12",and "7".
+The second line identifies the largest value in the vector. We would expect the following outcomes for numerical data: the maximum value being 12, the sorted output being 5, 7, 12. However, since 5, 12, and 7 are treated as character data types, the results differ. In lexicographical order, the maximum value is 7, as it's the highest when compared as strings. Sorting the values lexicographically yields 12, 5, and 7.
+The third row intends to sum all the values in the vector, but calculating the sum is not feasible with character data types.
+
 
 b. For the next two commands, either explain their results, or why they
 should produce errors.
@@ -152,9 +163,9 @@ should produce errors.
 y <- c("5",7,12)
 y[2] + y[3]
 ```
-The vector y contains mixed data types, and in R, when a vector holds different types of data, it is coerced to the most flexible type that can accommodate all values. In this case, that type is character.
+The first row created a vector named y contained mixed data types, and in R, when a vector holds different types of data, it is coerced to the most flexible type that can accommodate all values. In this case, that type is character.
 
-As a result, y[2] and y[3] are treated as characters, which leads to an error when attempting to perform arithmetic operations on them.
+As a result, the second value in vector y y[2] and the third value in vector y y[3] are treated as characters, which leads to an error when attempting to perform arithmetic operations on them in the second line.
 
 c. For the next two commands, either explain their results, or why they should
 produce errors.
@@ -162,15 +173,15 @@ produce errors.
 z <- data.frame(z1="5",z2=7,z3=12)
 z[1,2] + z[1,3]
 ```
-We created a data frame with one row and three columns. The value in the first row, first column is the character "5", while the values in the first row, 
-second column, and first row, third column are the numbers 7 and 12, respectively. When the second line of code adds the values from the first row, second column (7) and the first row, third column (12), both are numeric and can be added together, resulting in 19.
+
+We created a data frame named z with one row and three columns with name z1, z2, and z3. The value in the first row, first column is the character "5", while the values in the first row, second column, and first row, third column are the numbers 7 and 12, respectively. When the second line of code adds the values from the first row, second column (7) and the first row, third column (12), both are numeric and can be added together, resulting in 19.
 
 3. (3 pts, equally weighted). 
 
 a.) What is the point of reproducible code? 
-Reproducible code allows anyone, including original author, to product the same
+Reproducible code allows anyone, including original author, to produce the same
 code, regardless of environment and time. It allows validation and collaboration
-, ensures that the code can trusted and built upon on.
+, ensuring that the code can trusted and built upon on.
 
 b.) Given an example of why making your code reproducible is important for you 
 to know in this class and moving forward. 
