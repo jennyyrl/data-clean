@@ -1,6 +1,6 @@
 
 ---
-title: "Evaluation Metrics for Entity Resolution"
+title: "Evaluation Metrics for Blocking/Entity Resolution"
 author: "STA 325: Homework 2"
 output: 
      pdf_document:
@@ -23,19 +23,94 @@ Code should be commented. See the Google style guide for questions regarding com
 0. Open a new R Markdown file; set the output to HTML mode and "Knit". This should produce a web page with the knitting procedure executing your code blocks. You can edit this new file to produce your homework submission.
 
 
-\textbf{Total points on assignment: 5 (reproducibility) + 25 points for the assignment.}
+\textbf{Total points on assignment: 2 (reproducibility) + 23 points for the assignment = 25 total points.}
 
-1. (4 points) What are the four main challenges of entity resolution? 
+1. (4 points) What are the four main challenges of entity resolution?
+
+1) Costly manual Labeling: Vast amounts of manually-labelled data are typically required for supervised learning and evaluation
+2) Scalability/computational efficiency: Approximations are required to avoid quadratic scaling. Need to ensure impact on accuracy is minimal
+3) Limited treatment of uncertainty: Given inherent uncertainties, it's important to output predictions with confidence regions
+4) Unreliable evaluation: Standard evaluation methods return imprecise estimates of performance
+
 2. (4 points, 1 point each) Suppose there are 10 records in a data set. 
 a.) What are the total number of brute-forte comparison needed to make all-to-all record comparisons? 
-b.) Repeat this for 100 records, 1000 records, 10,000 records. 
-c.) What do you observe about the number of comparisons that need to be made? 
-3. Consider the following record linkage data set with 1,000,0000 total records that are matched between two databases. Assume that 500,000 are true matches. Assume a classified (or method) finds 600,000 record pairs as matches, and of these 400,000 correspond as true matches. The number of TP + FP + TN + FN  = 50,000,000. 
+The total number is n choose 2. In this case, n equals 10, so the total number is 45.
 
+b.) Repeat this for 100 records, 1000 records, 10,000 records. 
+The total number is n choose 2. 
+In the case that n equals 100, so the total number is 4950.
+In the case that n equals 1000, so the total number is 499500.
+In the case that n equals 10000, so the total number is 49995000.
+
+c.) What do you observe about the number of comparisons that need to be made? 
+The number of comparisons needed grows quadratically with the number of records n. As nn becomes large, the number of comparisons increases very rapidly. For instance, going from 1000 to 10,000 records increases the number of comparisons from 499,500 to 49,995,000, which is approximately a 100-fold increase. This quadratic growth implies that brute-force all-to-all comparisons become computationally expensive quickly as the size of the dataset increases. 
+
+3. (9 points) Consider the following record linkage data set with 1,000,000 total records that are matched between two databases. Assume that 500,000 are true matches. Assume a classified (or method) finds 600,000 record pairs as matches, and of these 400,000 correspond as true matches. The number of TP + FP + TN + FN  = 50,000,000. 
 
 a. (4 points) Given the information above, find the following information in the confusion matrix: TP, FP, TN, and FN. 
+TP = Predicted true matches  = 400,000
+FP = Predicted matches - TP  = 200,000
+TN = 50,000,000 - TP- FP - FN = 49,300,000
+FN = Total true matches - TP = 100,000
+
 b. (1 point) Calculate the accuracy. Comment on the reliability of this metric for this problem. 
+
+Accuracy = (TP+TN)/(TP+FP+TN+FN) 
+         = (400,000+49,300,000)/50,000,000
+         = 0.994
+Comment on the reliability:
+The dataset has a significant imbalance between matches (500,000) and non-matches (49,500,000). The model could achieve high accuracy by mostly predicting the majority class.
+
 c. (1 point) Calculate the precision.
+Precision = TP/(TP+FP)
+          = 400,000/(400,000+200,000)
+          = 0.6666 = 66.67%
 d. (1 point) Calculate the recall. 
+Recall = TP/(TP+FN)
+       = 400,000/(400,000+100,000)
+       = 0.8 = 80 %
 e. (1 point) Calculate the f-measure. 
+f-measure = 2 X Precision X Recall / (Precision+Recall)
+          = 2 X 0.66667 X 0.8 / (0.6667 + 0.8)
+          = 72.7%
 f. (1 point) Comment on the reliability of the precision, recall, and f-measure for this problem. 
+The precision means that 66.67% of predicted matches are actually true matches. It indicates that classifier is moderately reliable to reliability to identify true matches.
+
+The recall means that 80% actual true matching pairs of records are correctly classified as matches. This indicates that the classifier are relatively strong at identify most of the true matches.
+
+The f-measure of 72.7% indicates that the classifier made reasonable trade-off between precision and recall and overall entity resolution is relatively effective.
+
+They are more reliable than accuracy because they account for the database imbalance between matches and non-matches.
+
+4. (6 points) We will revisit the Italian Survey on Household and Wealth (SHIW) from class, which 
+is a sample survey 383 households conducted by the Bank of Italy every two years (2008 and 2010).
+The data set is anonymized to remove first and last name (and other sensitive information). 
+
+a. (0 points) Please load the data set in the way that we did in class and block based upon gender. 
+b. (1 point) Plot the size of the blocks and comment on how many their are and their relative size. 
+c. (1 point) Calculate the reduction ratio and interpret its meaning. 
+d. (2 points) Calculate the precision and recall. Interpret the meaning of each. 
+e. (1 point) Would this be a reasonable approach for blocking. Explain. 
+f. (1 point) Would blocking on gender be recommended for entity resolution. Explain. 
+
+\newpage
+
+```{r, echo=TRUE, message=FALSE}
+library(italy)
+library(assert)
+data(italy08)
+data(italy10)
+knitr::opts_chunk$set(echo = TRUE, 
+                      fig.width=4, 
+                      fig.height=3, 
+                      fig.align="center")
+head(italy08)
+head(italy10)
+id08 <- italy08$id
+id10 <- italy10$id
+id <- c(italy08$id, italy10$id) # combine the id
+italy08 <- italy08[-c(1)] # remove the id
+italy10 <- italy10[-c(1)] # remove the id 
+italy <- rbind(italy08, italy10)
+head(italy)
+```
