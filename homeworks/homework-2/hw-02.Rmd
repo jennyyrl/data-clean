@@ -129,16 +129,21 @@ a. (0 points) Please load the data set in the way that we did in class and block
 ```{r}
 # block by gender
 blockByGender <- italy$SEX
-recordsPerBlock <- table(blockByGender)
-head(recordsPerBlock)
 ```
 
 
 b. (1 point) Plot the size of the blocks and comment on how many their are and their relative size. 
 ```{r}
 # Plot the sizes of each block using a bar plot
+recordsPerBlock <- table(blockByGender)
 plot(recordsPerBlock, cex.axis=0.6, xlab="", ylab="")
+head(recordsPerBlock)
 ```
+
+In gender 1 block, there are 14442.
+In gender 2 block, there are 12993.
+They are relatively similar and balanced.
+
 
 c. (1 point) Calculate the reduction ratio and interpret its meaning. 
 ```{r}
