@@ -38,42 +38,60 @@ The total number is n choose 2. In this case, n equals 10, so the total number i
 
 b.) Repeat this for 100 records, 1000 records, 10,000 records. 
 The total number is n choose 2. 
+```{r}
+choose(100,2)
+```
 In the case that n equals 100, so the total number is 4950.
+```{r}
+choose(1000,2)
+```
 In the case that n equals 1000, so the total number is 499500.
+```{r}
+choose(10000,2)
+```
 In the case that n equals 10000, so the total number is 49995000.
 
 c.) What do you observe about the number of comparisons that need to be made? 
+
 The number of comparisons needed grows quadratically with the number of records n. As nn becomes large, the number of comparisons increases very rapidly. For instance, going from 1000 to 10,000 records increases the number of comparisons from 499,500 to 49,995,000, which is approximately a 100-fold increase. This quadratic growth implies that brute-force all-to-all comparisons become computationally expensive quickly as the size of the dataset increases. 
 
 3. (9 points) Consider the following record linkage data set with 1,000,000 total records that are matched between two databases. Assume that 500,000 are true matches. Assume a classified (or method) finds 600,000 record pairs as matches, and of these 400,000 correspond as true matches. The number of TP + FP + TN + FN  = 50,000,000. 
 
 a. (4 points) Given the information above, find the following information in the confusion matrix: TP, FP, TN, and FN. 
-TP = Predicted true matches  = 400,000
-FP = Predicted matches - TP  = 200,000
-TN = 50,000,000 - TP- FP - FN = 49,300,000
-FN = Total true matches - TP = 100,000
+\newline
+TP = Predicted true matches  = 400,000 \newline
+FP = Predicted matches - TP  = 200,000 \newline
+TN = 50,000,000 - TP- FP - FN = 49,300,000 \newline
+FN = Total true matches - TP = 100,000 \newline
 
 b. (1 point) Calculate the accuracy. Comment on the reliability of this metric for this problem. 
+\newline
+Accuracy = (TP+TN)/(TP+FP+TN+FN) \newline
+         = (400,000+49,300,000)/50,000,000\newline
+         = 0.994 \newline
 
-Accuracy = (TP+TN)/(TP+FP+TN+FN) 
-         = (400,000+49,300,000)/50,000,000
-         = 0.994
 Comment on the reliability:
-The dataset has a significant imbalance between matches (500,000) and non-matches (49,500,000). The model could achieve high accuracy by mostly predicting the majority class.
+The dataset has a significant imbalance between matches (500,000) and non-matches (49,500,000). The model could achieve high accuracy by mostly predicting the majority class instead of being truely effective.
 
 c. (1 point) Calculate the precision.
-Precision = TP/(TP+FP)
-          = 400,000/(400,000+200,000)
-          = 0.6666 = 66.67%
+\newline
+Precision = TP/(TP+FP)\newline
+          = 400,000/(400,000+200,000)\newline
+          = 0.6666 = 66.67%\newline
+          
 d. (1 point) Calculate the recall. 
-Recall = TP/(TP+FN)
-       = 400,000/(400,000+100,000)
+\newline
+Recall = TP/(TP+FN)\newline
+       = 400,000/(400,000+100,000)\newline
        = 0.8 = 80 %
-e. (1 point) Calculate the f-measure. 
-f-measure = 2 X Precision X Recall / (Precision+Recall)
-          = 2 X 0.66667 X 0.8 / (0.6667 + 0.8)
+       
+e. (1 point) Calculate the f-measure. \newline
+f-measure = 2 X Precision X Recall / (Precision+Recall)\newline
+          = 2 X 0.66667 X 0.8 / (0.6667 + 0.8)\newline
           = 72.7%
-f. (1 point) Comment on the reliability of the precision, recall, and f-measure for this problem. 
+          
+f. (1 point) Comment on the reliability of the precision, recall, and f-measure for this problem. \newline
+
 The precision means that 66.67% of predicted matches are actually true matches. It indicates that classifier is moderately reliable to reliability to identify true matches.
 
 The recall means that 80% actual true matching pairs of records are correctly classified as matches. This indicates that the classifier are relatively strong at identify most of the true matches.
@@ -85,14 +103,6 @@ They are more reliable than accuracy because they account for the database imbal
 4. (6 points) We will revisit the Italian Survey on Household and Wealth (SHIW) from class, which 
 is a sample survey 383 households conducted by the Bank of Italy every two years (2008 and 2010).
 The data set is anonymized to remove first and last name (and other sensitive information). 
-
-a. (0 points) Please load the data set in the way that we did in class and block based upon gender. 
-b. (1 point) Plot the size of the blocks and comment on how many their are and their relative size. 
-c. (1 point) Calculate the reduction ratio and interpret its meaning. 
-d. (2 points) Calculate the precision and recall. Interpret the meaning of each. 
-e. (1 point) Would this be a reasonable approach for blocking. Explain. 
-f. (1 point) Would blocking on gender be recommended for entity resolution. Explain. 
-
 \newpage
 
 ```{r, echo=TRUE, message=FALSE}
@@ -114,3 +124,76 @@ italy10 <- italy10[-c(1)] # remove the id
 italy <- rbind(italy08, italy10)
 head(italy)
 ```
+
+a. (0 points) Please load the data set in the way that we did in class and block based upon gender. 
+```{r}
+# block by gender
+blockByGender <- italy$SEX
+recordsPerBlock <- table(blockByGender)
+head(recordsPerBlock)
+```
+
+
+b. (1 point) Plot the size of the blocks and comment on how many their are and their relative size. 
+```{r}
+# Plot the sizes of each block using a bar plot
+plot(recordsPerBlock, cex.axis=0.6, xlab="", ylab="")
+```
+
+c. (1 point) Calculate the reduction ratio and interpret its meaning. 
+```{r}
+#Function for Reduction Ratio
+reduction.ratio <- function(block.labels) {
+n_all_comp = choose(length(block.labels), 2)
+n_block_comp = sum(choose(table(block.labels), 2))
+(n_all_comp - n_block_comp) / n_all_comp
+}
+
+#Calculate Reduction Ratio
+reduction.ratio(blockByGender)
+```
+Blocking by gender eliminated 49.86% of comparisons.
+
+d. (2 points) Calculate the precision and recall. Interpret the meaning of each. 
+```{r}
+#Function for Precision
+precision <- function(block.labels, IDs) {
+  ct = xtabs(~block.labels+IDs)
+  # Number of true positives
+  TP = sum(choose(ct, 2))
+  # Number of positives = TP + FP
+  P = sum(choose(rowSums(ct), 2))
+  return(TP/P)
+}
+
+#Calculate Precision
+precision(blockByGender,id)
+```
+```{r}
+#Function for Recall
+recall <- function(block.labels, IDs) {
+  ct = xtabs(~IDs+block.labels)
+  # Number of true positives
+  TP = sum(choose(ct, 2))
+  # Number of true links = TP + FN
+  TL = sum(choose(rowSums(ct), 2))
+  return(TP/TL)
+} 
+
+#Calculate Recall
+recall(blockByGender,id)
+```
+
+The precision indicates that 0.0036% of record pairs that are classified as matches correspond to true matches, while the rest correspond to false matches.
+
+The recall indicates that 91.11% of the true matching record pairs are correctly classified as matches. 
+
+e. (1 point) Would this be a reasonable approach for blocking. Explain. 
+Blocking by gender is reasonable approach for blocking but might not be the best.
+
+Blocking by gender, in this case, is a reasonable approach to reduce the number of comparisons even though it has a relatively high reduction ratio (49.86%). This significant reduction can make the process more computationally feasible.
+
+f. (1 point) Would blocking on gender be recommended for entity resolution. Explain. 
+
+Blocking by gender would not be recommended even though it can significantly reduce the number of record comparisons. As indicated by the low precision (0.0036%), most of the record pairs identified as matches are not true matches, suggesting that the method generates many false positives and can lead to inefficiencies in the matching process.
+
