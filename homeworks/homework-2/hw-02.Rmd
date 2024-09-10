@@ -53,7 +53,7 @@ In the case that n equals 10000, so the total number is 49995000.
 
 c.) What do you observe about the number of comparisons that need to be made? 
 
-The number of comparisons needed grows quadratically with the number of records n. As nn becomes large, the number of comparisons increases very rapidly. For instance, going from 1000 to 10,000 records increases the number of comparisons from 499,500 to 49,995,000, which is approximately a 100-fold increase. This quadratic growth implies that brute-force all-to-all comparisons become computationally expensive quickly as the size of the dataset increases. 
+The number of comparisons needed grows exponentially with the number of records n. As nn becomes large, the number of comparisons increases very rapidly. For instance, going from 1000 to 10,000 records increases the number of comparisons from 499,500 to 49,995,000, which is approximately a 100-fold increase. This quadratic growth implies that brute-force all-to-all comparisons become computationally expensive quickly as the size of the dataset increases. 
 
 3. (9 points) Consider the following record linkage data set with 1,000,000 total records that are matched between two databases. Assume that 500,000 are true matches. Assume a classified (or method) finds 600,000 record pairs as matches, and of these 400,000 correspond as true matches. The number of TP + FP + TN + FN  = 50,000,000. 
 
