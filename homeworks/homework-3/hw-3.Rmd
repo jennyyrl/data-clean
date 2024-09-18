@@ -113,7 +113,9 @@ qplot(lsh_jaccard$score)
 1. Calculate the reduction ratio from the total number of record comparisons ($N$ choose 2) compared to those under locality sensitive hashing (above). 
 
 ```{r}
+#count number of n
 num_comparison <- nrow(candidates)
+#calculate reduction ratio
 (choose(n,2)-num_comparison)/choose(n,2)
 ```
 Locality sensitive hashing reduces the comparison space by 93.48%. 
@@ -137,8 +139,8 @@ calculate_TFPN <- function(candidates, a, b, truth,id1,id2){
   
   return(list(precision = precision, recall = recall))
 }
-
-precision_and_recall <- calculate_TFPN(candidates,a,b,cora_gold,id1,id2)
+#call function above
+precision_and_recall <- calculate_TFPN(lsh_jaccard,a,b,cora_gold,id1,id2)
 precision_and_recall$precision
 precision_and_recall$recall
 ```
@@ -148,7 +150,9 @@ The recall says that 90.87% of true matching record pairs are correctly classifi
 
 3. We can further reduce the problem by filtering out candidate pairs of records below a threshold $t$ that are unlikely to be matches. For example, assume $t = 0.8.$ Filter out all record pairs below the threshold of $0.8.$ We will call this locality sensitive hashing with filtering/thresholding. 
 ```{r}
+#function for filtered jaccard score
 filtered_by_threshold <-function(jscore,t){
+  #keep candidates that have jaccard score greater than 0.8
   filtered_candidates <- subset(lsh_jaccard,score >=t)
   return(filtered_candidates)
 }
@@ -174,10 +178,12 @@ calculate_TFPN <- function(candidates, a, b, truth,id1,id2){
   return(list(precision = precision, recall = recall))
 }
 
+#call function and input parameters
 precision_and_recall_filtered <- calculate_TFPN(filtered_candidates,a,b,cora_gold,id1,id2)
 precision_and_recall_filtered$precision
 precision_and_recall_filtered$recall
 
+#recalculate number of n
 num_comparison_filtered <- nrow(filtered_candidates)
 (choose(n,2)-num_comparison_filtered)/choose(n,2)
 ```
@@ -193,9 +199,27 @@ i. Describe what the blocks look like from this method?
 In the LSH Process, blocking happens as the signature matrix gets divide into bands,which farther get hash into buckets. 
 
 ii. Are they non-overlapping or overlapping? 
-They are overlapping because every record appears in 90 buckets.
+The blocks are overlapping because, theoretically, a single record can belong to multiple blocks, with other records sharing similarities across those blocks. This is evident from the fact that there are more unique buckets than the total number of records represented in both the graph and the count data below.
 ```{r}
-table(buckets$doc)
+#count occurrence of buckets
+occurrences<-table(buckets$buckets)
+#sort the occurrences
+sorted_occurrences <- sort(occurrences, decreasing = TRUE)
+
+# Plot the barplot with sorted occurrences
+barplot(sorted_occurrences, 
+        main = "Sorted Histogram of Occurrences",  # Title of the plot
+        xlab = "Buckets",                         # Label for the x-axis
+        ylab = "Occurrences",                     # Label for the y-axis
+        col = "lightblue",                        # Color of the bars
+        border = "black",                         # Border color of the bars
+        xaxt = 'n')                               # Remove x-axis tick marks
+
+# Get unique buckets (those with at least one data point)
+unique_buckets <- unique(buckets$buckets)
+
+# Count the number of unique buckets
+length(unique_buckets)
 ```
 
 iii. Describe some advantages and disadvantages of this method that you see from using it practically. 
