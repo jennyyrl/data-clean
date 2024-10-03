@@ -6,24 +6,23 @@ date: "2024-10-02"
 
 1. (6 points, 1 point each). True or False. Answer True or False for each part below. You do not need to explain your rationale for credit.
 
-a. The four stages of the data cleaning pipeline are as follows: 1. schema alignment, principal components
-analysis, entity resolution, and canonicalization.
-False
+a. The four stages of the data cleaning pipeline are as follows: 1. schema alignment, principal components analysis, entity resolution, and canonicalization.
+False [Citation: Data-Cleaning-Part-I Slide 4]
 
 b. One application of entity resolution is predicting if two finger prints are matches (or not matches).
-True
+True [Citation: Data-Cleaning-Part-I Slide 4]
 
 c. One challenge of the data cleaning pipeline is scaling to large databases.
-False
+True [Citation: Preliminaries Slide 15]
 
 d. Suppose a data set has a total of R records. In the blocking stage, there are R total record comparisons that can be made.
-False?
+False
 
 e. The output of entity resolution can tells us if record pairs are matches or non-matches. It does not tells us what record is the most representative entity (person) in the data set.
 True
 
 f. The goal of schema alignment is to remove duplicate entities from large databases.
-False
+False [Citation: Data-Cleaning-Part-I Slide 4]
 
 2. 6 points (1 point each).
 a. Compute the Jaccard similarity for each pair of the following three sets:
@@ -42,7 +41,7 @@ jaccard_similarity(S1,S2)
 jaccard_similarity(S1,S3)
 jaccard_similarity(S2,S3)
 ```
-
+Citation: Probabilistic-Blocking-PartI Slide 17-19
 
 b. Consider two sentences:
 “The plane was ready for touch down” and “The quarterback scored a touchdown”
@@ -50,22 +49,25 @@ Find the set of 9-shingles for each sentence, where you should ignore blanks (or
 
 ```{r}
 token_1 <- tokenize_character_shingles("Theplanewasreadyfortouchdown", n=9)
+unlist(token_1)
 token_2 <- tokenize_character_shingles("Thequarterbackscoredatouchdown", n=9)
-
-jaccard_similarity(unlist(token_1),unlist(token_2))
+unlist(token_2)
 ```
+Citation: Probabilistic-Blocking-PartI Slide 17-19
+
 c. Explain why we do not store data in the form of a characteristic matrix (for practical purposes).
-It takes up too much space - signature matrix is more efficient as it only take the hashed values.
+
+A characteristic matrix can be inefficient to store. Minhashing and LSH helps with reducing the size while while preserving most of the information. 
 
 d. Explain what the minhash function does to the characterisic matrix. Hint: Think about the rows versus the columns.
 
-We use minhash function to create signature matrix. During minhash process, we first permuate the rows of characteristic matrix m times, iterate over each column of permuted matrix, and populate the signature matrix row-wise, with the row index from the first 1 value found in the column. 
+We use minhash function to create signature matrix. During minhash process, we first permute the rows of characteristic matrix m times, going through each column of permuted matrix, and populate the signature matrix row-wise, with the row index from the first 1 value found in the column. 
 
 Citation: Probabilistic Blocking Part II Slide 14
 
 e. Explain (in words) the connection between minhashing and the Jaccard similarity of the sets that are minhashed.
 
-The random permutations of the characteristic matrix, a step of minhashing process, equals to the Jaccard similarity. ? 
+Jaccard similarity compares the ratio of the size of two set's intersection to the size of their union. Minhashing approximates the similarity - the probability of two sets having the same minmash value is proportional to their Jaccard similarity.
 
 Citation: Probabilistic Blocking Part II Slide 16
 
@@ -79,8 +81,13 @@ permuted_matrix <- rbind(s1, s2 , s3, s4)
 permuted_matrix
 ```
 Find the first row of the signature matrix S. You may answer this either by hand or using R.
-{3,2,1,1}?
 
+
+{3,2,1,2}
+For the first column, the first 1 is in row 3.
+For the second column, the first 1 is in row 2.
+For the third column, the first 1 is in row 1.
+For the fourth column, the first 1 is in row 2.
 
 3. (10 points) Consider the cora data set that we considered in class and in homework
 ```{r}
@@ -113,14 +120,14 @@ merged_cora_gold <- merge(merged_cora_gold, cora_gold_update, by.x = "id2",
                           by.y = "cora_id", all.x = TRUE, suffixes = c("_id1", "_id2"))
 
 errors <- merged_cora_gold[merged_cora_gold$unique_id_id1 != merged_cora_gold$unique_id_id2, ]
-errors
+head(errors)
 ```
+There are errors in cora_gold_update because some of the matches have different unique ids.
 
 b. (2 points) Calculate how many inconsistencies exist between cora_gold and cora_gold_update based upon part (a).
 ```{r}
 # Count the number of inconsistencies
-inconsistencies <- nrow(errors)
-inconsistencies
+nrow(errors)
 ```
 There are 21856 inconsistencies. 
 
@@ -128,7 +135,8 @@ c. (6 points)
 Using cora_gold, write code such that cora_gold_update that maintains the same mapping.
 ```{r}
 cora_gold_update_2 <- cora_gold_update
-
+# To make sure we propagate corrected id across the data set we need a loop to make
+# sure that there is no more inconsistency
 # Initialize a variable to track if any changes were made in an iteration
 changed <- TRUE
 
@@ -172,13 +180,15 @@ merged_cora_gold_2 <- merge(cora_gold, cora_gold_update_2, by.x = "id1",
 #merge again to get unique id for id2
 merged_cora_gold_2 <- merge(merged_cora_gold_2, cora_gold_update_2, by.x = "id2", 
                           by.y = "cora_id", all.x = TRUE, suffixes = c("_id1", "_id2"))
-
-merged_cora_gold_2$unique_id_id1 == merged_cora_gold_2$unique_id_id2
+#check if all matches have same id
+all(merged_cora_gold_2$unique_id_id1 == merged_cora_gold_2$unique_id_id2)
 ```
 
+All of the matches have the same id.
 (ii) Validate that the number of inconsistencies is now 0.
 ```{r}
 errors_2 <- merged_cora_gold_2[merged_cora_gold_2$unique_id_id1 != merged_cora_gold_2$unique_id_id2, ]
+#count number of inconsistencies
 nrow(errors_2)
 ```
 
