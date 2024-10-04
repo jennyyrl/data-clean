@@ -133,41 +133,40 @@ There are 21856 inconsistencies.
 
 c. (6 points)
 Using cora_gold, write code such that cora_gold_update that maintains the same mapping.
-```{r}
-cora_gold_update_2 <- cora_gold_update
-# To make sure we propagate corrected id across the data set we need a loop to make
-# sure that there is no more inconsistency
-# Initialize a variable to track if any changes were made in an iteration
-changed <- TRUE
 
-# Repeat the process until no more inconsistencies are found
-while (changed) {
-  # Merge cora_gold with cora_gold_update_2 to get current unique ids for id1 and id2
-  merged_cora_gold_2 <- merge(cora_gold, cora_gold_update_2, by.x = "id1", 
-                              by.y = "cora_id", all.x = TRUE)
-  merged_cora_gold_2 <- merge(merged_cora_gold_2, cora_gold_update_2, by.x = "id2", 
-                              by.y = "cora_id", all.x = TRUE, suffixes = c("_id1", "_id2"))
-  
-  # Identify inconsistencies where unique_id of id1 and id2 are different
-  errors <- merged_cora_gold_2[merged_cora_gold_2$unique_id_id1 != merged_cora_gold_2$unique_id_id2, ]
-  
-  # If no errors are found, set changed to FALSE to exit the loop
-  if (nrow(errors) == 0) {
-    changed <- FALSE
-  } else {
-    # For each error, update the unique_id to the minimum of the two for both id1 and id2
-    for (i in 1:nrow(errors)) {
-      id1 <- errors$id1[i]
-      id2 <- errors$id2[i]
-      correct_unique_id <- min(errors$unique_id_id1[i], errors$unique_id_id2[i])
-      
-      # Update the unique_id for all records with cora_id equal to id1 or id2
-      cora_gold_update_2$unique_id[
-        cora_gold_update_2$cora_id %in% c(id1, id2)
-      ] <- correct_unique_id
-    }
-  }
+```{r, cache=TRUE}
+#Citation: HW3 Partial Solution
+n <- nrow(cora)
+
+# initialize each row to be its own "group"
+unique_ids <- 1:n
+
+# update "groups" as iterate over rows
+# know that assigning the new ID will be a valid group since id1 < id2 for all rows
+# the unique_id for indexes corresponding to cora_ids will be the same if they 
+#   are really the same entity
+for (row in 1:nrow(cora_gold)) {
+  id1 <- cora_gold[row,1]
+  id2 <- cora_gold[row,2]
+  unique_ids[id2] <- unique_ids[id1]
 }
+
+# count number of unique entities
+n_unique <- length(unique(unique_ids))
+
+# map the raw group IDs to a simpler group IDs format
+# allows the unique_id to only go from 1 to n_unique instead of 1 to n
+map <- setNames(1:n_unique, unique(unique_ids))
+
+# apply the mapping
+unique_ids <- map[as.character(unique_ids)]
+
+# create dataframe storing unique IDs
+unique_df <- data.frame(
+  cora_id = 1:n,
+  unique_id = unique_ids
+)
+head(unique_df)
 ```
 
 (i) Validate that all matches have the same unique id. Provide a Boolean result.
@@ -175,10 +174,10 @@ while (changed) {
 #If the id paris do not map to the same unique id 
 #then they are not the same entity, hence error
 #merge cora_gold_update with cora_gold on cora_id to get unique id for id1
-merged_cora_gold_2 <- merge(cora_gold, cora_gold_update_2, by.x = "id1", 
+merged_cora_gold_2 <- merge(cora_gold, unique_df, by.x = "id1", 
                           by.y = "cora_id", all.x = TRUE)
 #merge again to get unique id for id2
-merged_cora_gold_2 <- merge(merged_cora_gold_2, cora_gold_update_2, by.x = "id2", 
+merged_cora_gold_2 <- merge(merged_cora_gold_2, unique_df, by.x = "id2", 
                           by.y = "cora_id", all.x = TRUE, suffixes = c("_id1", "_id2"))
 #check if all matches have same id
 all(merged_cora_gold_2$unique_id_id1 == merged_cora_gold_2$unique_id_id2)
